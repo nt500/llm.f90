@@ -1,7 +1,8 @@
 llm
 load
 *.bin
-*.mod
+*.mood
+*.gguf
 models/*
 models1b
 models1b/*

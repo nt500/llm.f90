@@ -1,15 +1,15 @@
 ! load.f90
 
-module precision_module
+module load_precision_module
   implicit none
   integer, parameter :: wp = kind(1.0)
   ! not portable?
   integer, parameter :: ip4 = 1
   integer, parameter :: qk4 = 32
-end module precision_module
+end module load_precision_module
 
-module mixed_type_module
-  use precision_module
+module load_mixed_type_module
+  use load_precision_module
   implicit none
   type mixed_type
     class(*), allocatable :: item
@@ -44,7 +44,7 @@ module mixed_type_module
 
 end module
 
-module arg_parse
+module load_arg_parse
         implicit none
 
         type args
@@ -111,13 +111,13 @@ module arg_parse
 
                 end subroutine
 
-end module arg_parse
+end module load_arg_parse
 
 
 !module conversions
 !        use iso_c_binding
 !        !use quants
-!        use precision_module
+!        use load_precision_module
 !        implicit none
 !
 !        interface
@@ -156,10 +156,10 @@ end module arg_parse
 !end module 
 
 program load
-        use precision_module
-        use mixed_type_module
+        use load_precision_module
+        use load_mixed_type_module
         use conversions
-        use arg_parse
+        use load_arg_parse
         implicit none
 
         character(len=64) :: filename, outfile
