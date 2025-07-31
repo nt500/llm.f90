@@ -1,13 +1,13 @@
 ! set precision of reals (here default which is 4 byte)
-module precision_module
+module ssm_precision_module
   implicit none
   integer, parameter :: wp = kind(1.0)
   integer, parameter :: f16p = 2
-end module precision_module
+end module ssm_precision_module
 
 ! structs for reading weights, config information and state 
-module weight_module
-        use precision_module
+module ssm_weight_module
+        use ssm_precision_module
         implicit none
         private wp
 
@@ -53,5 +53,5 @@ module weight_module
 
         end type RunState
 
-end module weight_module
+end module ssm_weight_module
 
