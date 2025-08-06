@@ -415,7 +415,7 @@ contains
                 real(kind=wp) :: v_t(emb_dim/n_heads)
                 real(kind=wp) :: xbh(emb_dim/n_heads)
                 real(kind=wp) :: a
-                integer :: kv_mul
+                integer :: kv_mul, head
 
                 ! fc layers
                 real(kind=wp), target :: hb13(2*hidden_dim)
@@ -488,25 +488,40 @@ contains
                         do h = 0,(n_heads-1)        
 
                         q_t = q((h*head_size+1):((h+1)*head_size))
-          
-                        do t = 1,(pos)
-                        !k_t = s%key_cache((h*head_size+1):((h+1)*head_size),t,l)
-                        ! for shared heads 
-                        k_t = s%key_cache(((h/kv_mul)*head_size+1):(((h+1)/kv_mul)*head_size),t,l)
-                        s%att(t,h+1) = dot_product(q_t,k_t)/sqrt(real(head_size,wp))
-                        end do  
-          
+        
+			do head = 0,(n_heads-1)        
+    				q_t = q((head*head_size+1):((head+1)*head_size))
+    
+    				do t = 1,(pos)
+        				! Fix the array bounds calculation
+        				k_t = s%key_cache(((head/kv_mul)*head_size+1):((head/kv_mul+1)*head_size), t, l)
+        				s%att(t,head+1) = dot_product(q_t,k_t)/sqrt(real(head_size,wp))
+    				end do  
+
+    				s%att(:,head+1) = softmax(s%att(:,head+1),pos)
+    				xbh(:) = 0  
+    
+    				do t = 1,(pos) 
+        				v_t = s%value_cache(((head/kv_mul)*head_size+1):((head/kv_mul+1)*head_size), t, l)
+        				a = s%att(t,head+1)
+        				xbh = xbh + a*v_t  
+    				end do     
+
+    				xb((head*head_size+1):((head+1)*head_size)) = xbh
+			end do
+
                         ! beginning to POS, inclusive. so if pos = 1, there is 1...      
                         s%att(:,h+1) = softmax(s%att(:,h+1),pos)
                         xbh(:) = 0  
-                        
-                        do t = 1,(pos) 
-                        !v_t = s%value_cache((h*head_size+1):((h+1)*head_size),t,l)      
-                        v_t = s%value_cache(((h/kv_mul)*head_size+1):(((h+1)/kv_mul)*head_size),t,l) 
-                        a = s%att(t,h+1)
-                        xbh = xbh + a*v_t  
-                        end do     
-        
+
+       			do t = 1,(pos) 
+    				! Use existing variables to calculate the correct slice bounds
+    				i = (h/kv_mul)*head_size+1
+    				v_t = s%value_cache(i:(i+head_size-1),t,l) 
+   	 			a = s%att(t,h+1)
+    				xbh = xbh + a*v_t  
+			end do 
+			 
                         xb((h*head_size+1):((h+1)*head_size)) = xbh
                        
                         end do  
