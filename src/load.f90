@@ -57,7 +57,7 @@ module load_arg_parse
         contains
 
                 subroutine parse_args(arg_values)
-                        type(args) :: arg_values
+                        type(args), intent(inout) :: arg_values
                         integer :: i, num_args
                         character(256) :: arg
 
