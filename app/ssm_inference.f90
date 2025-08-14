@@ -1,9 +1,9 @@
 program ssm_inference
         use, intrinsic :: iso_fortran_env, only : iostat_end
         use iso_c_binding
-        use ssm_precision_module
-        use ssm_weight_module
-        use mamba_arg_parse
+        use ssm_precision_module, only: wp
+        use ssm_weight_module, only: MambaWeights, RunState,  Config
+        use mamba_arg_parse, only: args, parse_args
         !use read_ggml, only: load_ggml
         !use omp_lib
 
@@ -369,7 +369,7 @@ contains
 
         ! sample from softmax probabilities  
         function sample(p) result(i)
-              real(kind=wp) :: p(:)
+              real(kind=wp), intent(in) :: p(:)
               integer :: i
               real(kind=wp) :: r, cdf
 
@@ -389,7 +389,7 @@ contains
 
         end function 
       
-        elemental function silu(x) result(y)
+        pure elemental function silu(x) result(y)
                 real(kind=wp), intent(in) :: x
                 real(kind=wp) :: y
 
@@ -397,8 +397,8 @@ contains
         end function
 
         ! normalize and apply weigths. Note fortran built in dot product    
-        function rmsnorm(x,w) result(xr)
-              real(kind=wp) :: x(:), w(:)
+        pure function rmsnorm(x,w) result(xr)
+              real(kind=wp), intent(in) :: x(:), w(:)
               real(kind=wp) :: xr(size(x))
               real(kind=wp) :: xn
               xn = sqrt(dot_product(x,x)/size(x)+1e-5)
@@ -422,7 +422,7 @@ contains
         function next_token(token, pos, s, w) result(logits)
                 integer, intent(in) :: token, pos
                 !type(Config), intent(in) :: p
-                type(Runstate) :: s
+                type(Runstate), intent(inout) :: s
                 type(MambaWeights), intent(in) :: w
                 real(kind=wp) :: logits(vocab_size)
 
@@ -497,7 +497,7 @@ contains
                 real(kind=wp), intent(in) :: hidden_states(emb_dim)
                 real(kind=wp)  :: s_out(emb_dim)
                 integer, intent(in) :: layer
-                type(Runstate) :: s
+                type(Runstate), intent(inout) :: s
                 type(MambaWeights), intent(in) :: w
                 
                 real(kind=wp), allocatable :: conv_state(:,:), ssm_state(:,:)
@@ -577,8 +577,8 @@ contains
 
         ! lookup the encoding of a token
         function lookup(s,l) result(ind)
-                character(len=*) :: s
-                integer :: l
+                character(len=*), intent(in) :: s
+                integer, intent(in) :: l
                 integer :: i, ind
 
                 do i = 1,size(vocab)
@@ -593,7 +593,7 @@ contains
         ! encode text into tokens
         function bpe_encode(text) result(tokens)
 
-                character(len=*) :: text
+                character(len=*), intent(in) :: text
                 integer, allocatable :: tokens(:)
                 integer, allocatable :: tmp_tokens(:)
                 integer :: i, ind, best_id, t1, t2

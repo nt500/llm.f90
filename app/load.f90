@@ -1,8 +1,8 @@
 program load
-        use load_precision_module
-        use load_mixed_type_module
+        use load_precision_module, only: wp
+        use load_mixed_type_module, only: multi_type, ggml_tensor_info, generic_tensor
         !use conversions
-        use load_arg_parse
+        use load_arg_parse, only: args, parse_args
         implicit none
 
         character(len=64) :: filename, outfile
@@ -379,8 +379,8 @@ contains
         end subroutine 
         
         function get_rope_freqs(i_dim, i_end, theta) result(freq_array)
-                integer :: i_dim, i_end
-                real(kind=wp) :: theta
+                integer, intent(in) :: i_dim, i_end
+                real(kind=wp), intent(in) :: theta
                 !real(kind=wp) :: cis(i_end/2,2)
                 real(kind=wp),allocatable :: freqs(:)
                 real(kind=wp),allocatable :: freq_array(:,:)
@@ -399,7 +399,7 @@ contains
         end function
         
         function tensor_by_name(s)
-                character(len=*) :: s
+                character(len=*), intent(in) :: s
                 integer :: i
                 type(ggml_tensor_info) :: tensor_by_name
                 do i=1,tensor_count
@@ -411,8 +411,8 @@ contains
                 print *, "key not found",s
                 stop
         end
-        function prod(a)
-                integer(8) :: a(:)
+        pure function prod(a)
+                integer(8), intent(in) :: a(:)
                 integer :: i
                 integer(8) :: prod
                 prod = 1
@@ -422,8 +422,8 @@ contains
         end function
     
         function read_layer_fp16(handle, layer) result(d)
-                integer :: handle
-                type(ggml_tensor_info) :: layer
+                integer, intent(in) :: handle
+                type(ggml_tensor_info), intent(in) :: layer
                 integer(2), allocatable :: d(:)
                 if (verbose) then
                         write(*,"(A,A26)",advance="no") "reading",layer%tname 
@@ -438,8 +438,8 @@ contains
         end function 
 
         function read_layer(handle, layer) result(d)
-                integer :: handle
-                type(ggml_tensor_info) :: layer
+                integer, intent(in) :: handle
+                type(ggml_tensor_info), intent(in) :: layer
                 type(generic_tensor) :: d
                 !integer(2), allocatable :: d(:)
                 if (verbose) then
@@ -480,7 +480,7 @@ contains
         end function   
         
         function read_str(handle)
-                integer :: handle
+                integer, intent(in) :: handle
                 integer(8) :: strlen
            
                 character(:), allocatable :: read_str
@@ -491,7 +491,8 @@ contains
         end function
 
         recursive function read_val(handle, val_type) result (val)
-                integer :: handle, val_type, i
+                integer, intent(in) :: handle, val_type
+		integer :: i
                 character (:), allocatable :: temp
                 type(multi_type) :: val
                 integer(4) :: atype
@@ -527,7 +528,7 @@ contains
         end function
 
         subroutine print_multi(m) 
-                type(multi_type) :: m
+                type(multi_type), intent(in) :: m
                 if (m%type_num .eq. 8) then
                         print *, m%string
                 else if (m%type_num .eq. 4) then
@@ -543,7 +544,8 @@ contains
         end subroutine
 
         function read_tensor_info(handle) result(info)
-                integer :: handle, i
+                integer, intent(in) :: handle
+		integer :: i
                 type(ggml_tensor_info) :: info
                 info%tname = read_str(handle)
                 read(handle) info%ndim 
