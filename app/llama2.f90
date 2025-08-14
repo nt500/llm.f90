@@ -1,8 +1,8 @@
 program llama2 
         use iso_c_binding
-        use precision_module
-        use weight_module
-        use arg_parse
+        use precision_module, only: wp
+        use weight_module, only: TransformerWeights, RunState, Config
+        use arg_parse, only: args, parse_args
         use read_ggml, only: load_ggml
         !use omp_lib
 
@@ -340,7 +340,7 @@ contains
 
         ! sample from softmax probabilities  
         function sample(p) result(i)
-              real(kind=wp) :: p(:)
+              real(kind=wp), intent(in) :: p(:)
               integer :: i
               real(kind=wp) :: r, cdf
 
@@ -361,8 +361,8 @@ contains
         end function 
       
         ! normalize and apply weigths. Note fortran built in dot product    
-        function rmsnorm(x,w) result(xr)
-              real(kind=wp) :: x(:), w(:)
+        pure function rmsnorm(x,w) result(xr)
+              real(kind=wp), intent(in) :: x(:), w(:)
               real(kind=wp) :: xr(size(x))
               real(kind=wp) :: xn
               xn = sqrt(dot_product(x,x)/size(x)+1e-5)
@@ -394,7 +394,7 @@ contains
         function transformer(token, pos, s, w) result(logits)
                 integer, intent(in) :: token, pos
                 !type(Config), intent(in) :: p
-                type(Runstate) :: s
+                type(Runstate), intent(inout) :: s
                 type(TransformerWeights), intent(in) :: w
                 real(kind=wp) :: logits(vocab_size)
 
@@ -488,7 +488,7 @@ contains
                         do h = 0,(n_heads-1)        
 
                         q_t = q((h*head_size+1):((h+1)*head_size))
-        
+       
 			do head = 0,(n_heads-1)        
     				q_t = q((head*head_size+1):((head+1)*head_size))
     
@@ -570,8 +570,8 @@ contains
 
         ! lookup the encoding of a token
         function lookup(s,l) result(ind)
-                character(len=*) :: s
-                integer :: l
+                character(len=*), intent(in) :: s
+                integer, intent(in) :: l
                 integer :: i, ind
 
                 do i = 1,size(vocab)
@@ -586,7 +586,7 @@ contains
         ! encode text into tokens
         function bpe_encode(text) result(tokens)
 
-                character(len=*) :: text
+                character(len=*), intent(in) :: text
                 integer, allocatable :: tokens(:)
                 integer, allocatable :: tmp_tokens(:)
                 integer :: i, ind, best_id, t1, t2
