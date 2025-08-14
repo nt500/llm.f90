@@ -9,7 +9,7 @@ module load_precision_module
 end module load_precision_module
 
 module load_mixed_type_module
-  use load_precision_module
+  use load_precision_module, only: wp
   implicit none
   type mixed_type
     class(*), allocatable :: item
