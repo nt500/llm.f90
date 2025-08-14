@@ -1,7 +1,7 @@
 ! load.f90
 
 module mixed_type_module
-  use precision_module
+  use precision_module, only: wp
   implicit none
   type mixed_type
     class(*), allocatable :: item
@@ -39,7 +39,7 @@ end module
 
 module read_ggml
 
-        use precision_module
+        use precision_module, only: wp
         use mixed_type_module
         use weight_module
         implicit none

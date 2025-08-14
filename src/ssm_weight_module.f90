@@ -7,7 +7,7 @@ end module ssm_precision_module
 
 ! structs for reading weights, config information and state 
 module ssm_weight_module
-        use ssm_precision_module
+        use ssm_precision_module, only: wp
         implicit none
         private wp
 

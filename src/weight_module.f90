@@ -6,7 +6,7 @@ end module precision_module
 
 ! structs for reading weights, config information and state 
 module weight_module
-        use precision_module
+        use precision_module, only: wp
         implicit none
         private wp
 
