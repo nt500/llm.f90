@@ -40,8 +40,8 @@ end module
 module read_ggml
 
         use precision_module, only: wp
-        use mixed_type_module
-        use weight_module
+        use mixed_type_module, only: multi_type, ggml_tensor_info, generic_tensor
+        use weight_module, only: TransformerWeights, Config, RunState
         implicit none
         
         type(ggml_tensor_info), allocatable :: tensors(:)
